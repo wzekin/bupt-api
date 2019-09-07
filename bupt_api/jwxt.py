@@ -6,7 +6,7 @@ from ics import Calendar, Event
 import requests
 from bs4 import BeautifulSoup
 
-from login import auth
+from bupt_api.login import auth
 
 JWXT_LOGIN_URL = 'https://jwxt.bupt.edu.cn/caslogin.jsp'
 CLASS_URL = 'https://jwxt.bupt.edu.cn/xkAction.do?actionType=6'
@@ -24,6 +24,10 @@ class Class:
     name: str
     teacher: str
     location: str
+    weekday: int
+    weeks: str
+    session: int
+    number: int
     time: List[ClassTime]
 
 
@@ -119,22 +123,8 @@ class Jwxt(auth):
                              datetime.timedelta(days=weekday - 1, weeks=week - 1)
                 start_time, end_time = __get_time__(start_time, session, number)
                 class_time.append(ClassTime(start_time, end_time))
-            self.classes.append(Class(name, location, teacher, class_time))
+            self.classes.append(Class(name, teacher, location, weekday, weeks, session, number, class_time))
         return self.classes
-
-    def write_to_ics(self, location: str):
-        c = Calendar()
-        for class__ in self.classes:
-            for time__ in class__.time:
-                e = Event()
-                e.name = class__.name
-                e.begin = time__.start_time.isoformat()
-                e.end = time__.end_time.isoformat()
-                e.location = c.location
-                e.description = c.teacher
-                c.events.add(e)
-        with open(location, 'w') as my_file:
-            my_file.writelines(c)
 
 
 def __get_time__(start_time, session: int, number: int):

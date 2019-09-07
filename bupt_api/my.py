@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from dataclasses import dataclass
 import datetime
 import requests
-from login import auth
+from bupt_api.login import auth
 
 # MY_LOGIN_URL = ""
 LECTURE_URL = "http://my.bupt.edu.cn/detach.portal?.p=Znxjb20ud2lzY29tLnBvcnRhbC5jb250YWluZXIuY29yZS5pbXBsLlBvcnRsZXRFbnRpdHlXaW5kb3d8cGU3MjJ8dmlld3xub3JtYWx8YWN0aW9uPWxlY3R1cmVCcm93c2Vy"
