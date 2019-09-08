@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='bupt_api',
-    version='0.1.0',
+    version='0.1.2',
     author='zekin',
     author_email='wzekin@gmail.com',
     url='https://github.com/WangZeKun/bupt-api',
@@ -13,5 +13,10 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     platforms='any',
-    install_requires=['beautifulsoup4', 'requests', 'ics'],
+    install_requires=[
+        'beautifulsoup4',
+        'lxml',
+        'requests',
+        'dataclasses;python_version<"3.7"'
+    ],
 )
