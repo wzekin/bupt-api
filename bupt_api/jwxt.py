@@ -1,7 +1,7 @@
-from typing import List
-from dataclasses import dataclass
 import datetime
-from ics import Calendar, Event
+import logging
+from dataclasses import dataclass
+from typing import List
 
 import requests
 from bs4 import BeautifulSoup
@@ -51,9 +51,6 @@ class Term:
 
 class Jwxt(auth):
     session: requests.Session = None
-    classes: List[Class] = []
-    pass_score: List[Term] = []
-    no_pass_score: List[ClassScore] = []
 
     def __init__(self, username, password):
         requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS += 'HIGH:!DH:!aNULL'
@@ -66,6 +63,7 @@ class Jwxt(auth):
         self.session.get(JWXT_LOGIN_URL)
 
     def get_pass_score(self):
+        pass_score: List[Term] = []
         r = self.session.get(QBURL)
         soup = BeautifulSoup(r.text, 'lxml')
         topic = soup.find_all('table', class_='title')
@@ -84,14 +82,16 @@ class Jwxt(auth):
                 try:
                     score = float(tds[6].get_text(strip=True))
                 except ValueError:
-                    print(name_, '成绩信息错误！')
+                    logging.warning('%s  成绩信息错误！', name_)
                 scores.append(ClassScore(number, sort_number, name_, eng_name, credit, attr, score))
-            self.pass_score.append(Term(topic_name, scores))
-        return self.pass_score
+            pass_score.append(Term(topic_name, scores))
+        return pass_score
 
     def get_classes(self):
+        classes: List[Class] = []
         r = self.session.get(CLASS_URL)
         soup = BeautifulSoup(r.text, 'lxml')
+
         name = ''
         teacher = ''
         location = ''
@@ -103,28 +103,36 @@ class Jwxt(auth):
                 if len(tds) == 18:
                     name = tds[2].get_text(strip=True)
                     teacher = tds[7].get_text(strip=True)
-                    weeks = tds[11].get_text(strip=True)
+                    weeks_str = tds[11].get_text(strip=True)
                     weekday = int(tds[12].get_text(strip=True))
                     session = int(tds[13].get_text(strip=True))
                     number = int(tds[14].get_text(strip=True))
                     location = tds[17].get_text(strip=True)
                 else:
-                    weeks = tds[0].get_text(strip=True)
+                    weeks_str = tds[0].get_text(strip=True)
                     weekday = int(tds[1].get_text(strip=True))
                     session = int(tds[2].get_text(strip=True))
                     number = int(tds[3].get_text(strip=True))
                     location = tds[6].get_text(strip=True)
             except ValueError:
-                print(name, '没有时间信息！！！')
+                logging.warning('%s  没有时间信息！！！', name)
                 continue
             class_time = []
-            for week in __return_week__(weeks):
+            weeks = []
+            try:
+                weeks = __return_week__(weeks_str)
+            except Exception as e:
+                logging.error("%s 解析周数错误！！！", name)
+                logging.error('周数字符串为： %s', weeks_str)
+                logging.error('请将此issue提交到 http://github.com/WangZeKun/bupt-api')
+                logging.error(e)
+            for week in weeks:
                 start_time = time_ + \
                              datetime.timedelta(days=weekday - 1, weeks=week - 1)
                 start_time, end_time = __get_time__(start_time, session, number)
                 class_time.append(ClassTime(start_time, end_time))
-            self.classes.append(Class(name, teacher, location, weekday, weeks, session, number, class_time))
-        return self.classes
+            classes.append(Class(name, teacher, location, weekday, weeks_str, session, number, class_time))
+        return classes
 
 
 def __get_time__(start_time, session: int, number: int):
@@ -173,12 +181,15 @@ def __return_week__(s):
         start, index = getnumber(index)
         end = start
         if index < len(s):
+            print(s[index])
             if s[index] == '-':
                 index += 1
                 end, index = getnumber(index)
                 index += 1
-            elif s[index] == '、':
+            elif s[index] == '、' or s[index] == ',':
                 index += 1
+            elif s[index] == "周" and s[index + 1] == "上":
+                index += 2
             else:
                 raise Exception("invalid str")
         week += list(range(start, end + 1))
