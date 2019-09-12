@@ -22,13 +22,13 @@ class Lecture:
 
 class My(auth):
     session: requests.Session = None
-    lectures: List[Lecture] = []
 
     def __init__(self, username: str, password: str):
         auth.__init__(self, username, password)
         # self.session.get(MY_LOGIN_URL)
 
     def get_lecture(self):
+        lectures: List[Lecture] = []
         r = self.session.post(LECTURE_URL)
         soup = BeautifulSoup(r.text, "lxml")
         for li in soup.find('ul', class_="newslist list-unstyled").find_all('li'):
@@ -36,8 +36,8 @@ class My(auth):
             name = a.get_text(strip=True)
             url = a.href
             time = datetime.datetime.strptime(name[0:16], '%Y-%m-%d %H:%M')
-            self.lectures.append(Lecture(name, url, time))
-        return self.lectures
+            lectures.append(Lecture(name, url, time))
+        return lectures
 
     def get_after_lecture(self):
         return list(filter(lambda l: l.time > datetime.datetime.now(), self.get_lecture()))
