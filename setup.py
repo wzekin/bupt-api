@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='bupt_api',
-    version='0.2.0',
+    version='0.3.0',
     author='zekin',
     author_email='wzekin@gmail.com',
     url='https://github.com/WangZeKun/bupt-api',

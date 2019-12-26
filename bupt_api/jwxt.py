@@ -83,7 +83,9 @@ class Jwxt(auth):
                     score = float(tds[6].get_text(strip=True))
                 except ValueError:
                     logging.warning('%s  成绩信息错误！', name_)
-                scores.append(ClassScore(number, sort_number, name_, eng_name, credit, attr, score))
+                scores.append(
+                    ClassScore(number, sort_number, name_, eng_name, credit,
+                               attr, score))
             pass_score.append(Term(topic_name, scores))
         return pass_score
 
@@ -96,8 +98,8 @@ class Jwxt(auth):
         teacher = ''
         location = ''
         for tr in soup.findAll('tr', class_='odd'):
-            time_ = datetime.datetime.strptime(
-                '2019-08-26 08:00:00+0800', '%Y-%m-%d %H:%M:%S%z')  # 开学第一天
+            time_ = datetime.datetime.strptime('2019-08-26 08:00:00+0800',
+                                               '%Y-%m-%d %H:%M:%S%z')  # 开学第一天
             tds = tr.findAll('td')
             try:
                 if len(tds) == 18:
@@ -124,14 +126,18 @@ class Jwxt(auth):
             except Exception as e:
                 logging.error("%s 解析周数错误！！！", name)
                 logging.error('周数字符串为： %s', weeks_str)
-                logging.error('请将此issue提交到 http://github.com/WangZeKun/bupt-api')
+                logging.error(
+                    '请将此issue提交到 http://github.com/WangZeKun/bupt-api')
                 logging.error(e)
             for week in weeks:
                 start_time = time_ + \
                              datetime.timedelta(days=weekday - 1, weeks=week - 1)
-                start_time, end_time = __get_time__(start_time, session, number)
+                start_time, end_time = __get_time__(start_time, session,
+                                                    number)
                 class_time.append(ClassTime(start_time, end_time))
-            classes.append(Class(name, teacher, location, weekday, weeks_str, session, number, class_time))
+            classes.append(
+                Class(name, teacher, location, weekday, weeks_str, session,
+                      number, class_time))
         return classes
 
 
@@ -152,8 +158,8 @@ def __get_time__(start_time, session: int, number: int):
         13: datetime.timedelta(minutes=680),
         14: datetime.timedelta(minutes=721)
     }
-    return start_time + time_data[session], start_time + time_data[session + number - 1] + datetime.timedelta(
-        minutes=45)
+    return start_time + time_data[session], start_time + time_data[
+        session + number - 1] + datetime.timedelta(minutes=45)
 
 
 def __return_week__(s):
